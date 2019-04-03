@@ -4,7 +4,6 @@ const filenameRegex = [
   { lang: "typescript", regex: /\.ts$/i },
   { lang: "tsx", regex: /\.tsx$/i },
   { lang: "json", regex: /\.json$|.babelrc$/i },
-  { lang: "html", regex: /\.html$|\.htm$|\.svg$/i },
   { lang: "yaml", regex: /\.yaml$|.yml$/i },
   { lang: "bash", regex: /\.sh$/i },
   { lang: "python", regex: /\.py$/i },
@@ -13,20 +12,21 @@ const filenameRegex = [
   { lang: "less", regex: /\.less$/i },
   { lang: "scss", regex: /\.scss$/i },
   { lang: "ini", regex: /\.ini$|.editorconfig$/i },
-  { lang: "xml", regex: /\.xml$/i },
+  { lang: "markup", regex: /\.xml$|\.html$|\.htm$|\.svg$|\.mathml$/i },
   { lang: "bat", regex: /\.bat$/i },
   { lang: "clojure", regex: /\.clj$/i },
   { lang: "coffeescript", regex: /\.coffee$/i },
-  { lang: "cpp", regex: /\.cpp$/i },
+  { lang: "cpp", regex: /\.cpp$|\.cc$/i },
   { lang: "csharp", regex: /\.cs$/i },
   { lang: "csp", regex: /\.csp$/i },
   { lang: "diff", regex: /\.diff$/i },
-  { lang: "dockerfile", regex: /dockerfile$/i },
+  { lang: "docker", regex: /dockerfile$/i },
   { lang: "fsharp", regex: /\.fsharp$/i },
   { lang: "go", regex: /\.go$/i },
   { lang: "handlebars", regex: /\.hbs$/i },
   { lang: "haskell", regex: /\.hs$/i },
   { lang: "java", regex: /\.java$/i },
+  { lang: "kotlin", regex: /\.kt$/i },
   { lang: "lua", regex: /\.lua$/i },
   { lang: "markdown", regex: /\.md$/i },
   { lang: "msdax", regex: /\.msdax$/i },
@@ -48,7 +48,7 @@ const filenameRegex = [
   { lang: "solidity", regex: /\.solidity$/i },
   { lang: "st", regex: /\.st$/i },
   { lang: "swift", regex: /\.swift$/i },
-  { lang: "toml", regex: /\.toml$/i },
+  // { lang: "toml", regex: /\.toml$/i },
   { lang: "vb", regex: /\.vb$/i },
   { lang: "wasm", regex: /\.wasm$/i },
   // fallback
@@ -61,9 +61,28 @@ export function getLanguage(filename) {
 
 const dependencies = {
   cpp: ["c"],
-  tsx: ["jsx"]
+  tsx: ["jsx"],
+  scala: ["java"]
 };
 
 export function getLanguageDependencies(lang) {
   return dependencies[lang];
+}
+
+export function loadLanguage(lang) {
+  if (["js", "css", "html"].includes(lang)) {
+    return Promise.resolve();
+  }
+
+  const deps = getLanguageDependencies(lang);
+
+  let depPromise = import("prismjs");
+
+  if (deps) {
+    depPromise = depPromise.then(() =>
+      Promise.all(deps.map(dep => import(`prismjs/components/prism-${dep}`)))
+    );
+  }
+
+  return depPromise.then(() => import(`prismjs/components/prism-${lang}`));
 }

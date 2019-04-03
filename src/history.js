@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { getSlides } from "./differ";
-import { useSpring } from "react-use";
+import useSpring from "react-use/lib/useSpring";
+import Swipeable from "react-swipeable";
 import Slide from "./slide";
 import "./comment-box.css";
 
@@ -27,19 +28,27 @@ function CommitInfo({ commit, move, onClick }) {
         }}
         onClick={onClick}
       >
-        <img
-          src={commit.author.avatar}
-          alt={commit.author.login}
-          height={40}
-          width={40}
-          style={{ borderRadius: "4px" }}
-        />
+        {commit.author.avatar && (
+          <img
+            src={commit.author.avatar}
+            alt={commit.author.login}
+            height={40}
+            width={40}
+            style={{ borderRadius: "4px" }}
+          />
+        )}
         <div style={{ paddingLeft: "6px" }}>
           <div style={{ fontSize: "1.1rem", fontWeight: "500" }}>
             {commit.author.login}
           </div>
           <div style={{ fontSize: "0.85rem", opacity: "0.9" }}>
-            on {commit.date.toDateString()}
+            {isActive && commit.commitUrl ? (
+              <a href={commit.commitUrl} target="_blank">
+                on {commit.date.toDateString()}
+              </a>
+            ) : (
+              `on ${commit.date.toDateString()}`
+            )}
           </div>
         </div>
       </div>
@@ -85,7 +94,11 @@ function CommitList({ commits, currentIndex, selectCommit }) {
 export default function History({ commits, language }) {
   const codes = commits.map(commit => commit.content);
   const slideLines = getSlides(codes, language);
-  const [current, target, setTarget] = useSliderSpring(codes.length - 1);
+  return <Slides slideLines={slideLines} commits={commits} />;
+}
+
+function Slides({ commits, slideLines }) {
+  const [current, target, setTarget] = useSliderSpring(commits.length - 1);
   const index = Math.round(current);
 
   const nextSlide = () =>
@@ -109,10 +122,13 @@ export default function History({ commits, language }) {
         currentIndex={current}
         selectCommit={index => setTarget(index)}
       />
-      <Slide time={current - index} lines={slideLines[index]} />
+      <Swipeable onSwipedLeft={nextSlide} onSwipedRight={prevSlide}>
+        <Slide time={current - index} lines={slideLines[index]} />
+      </Swipeable>
     </React.Fragment>
   );
 }
+
 function useSliderSpring(initial) {
   const [target, setTarget] = useState(initial);
   const tension = 0;

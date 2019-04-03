@@ -1,6 +1,6 @@
 {
-  "short_name": "Github History",
-  "name": "Github History",
+  "short_name": "Git History",
+  "name": "Git History",
   "icons": [
     {
       "src": "favicon.ico",
@@ -10,6 +10,6 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#d6deeb",
+  "background_color": "#011627"
 }
